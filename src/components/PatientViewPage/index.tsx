@@ -6,20 +6,28 @@ import MaleIcon from '@mui/icons-material/Male';
 import FemaleIcon from '@mui/icons-material/Female';
 import TransgenderIcon from '@mui/icons-material/Transgender';
 import EntryDetails from "../EntryDetails";
-import EntryForm from "../EntryForm";
+// import EntryForm from "../AddEntryModal/AddEntryForm.tsx";
 import axios from "axios";
-import {Alert} from "@mui/material";
+import {Alert, Button} from "@mui/material";
 import {Diagnosis} from '../../types.js'
+import AddEntryModal from "../AddEntryModal";
 
 interface Props {
     diagnosis: Diagnosis[]
 }
 
-const PatientView = ({ diagnosis }: Props) => {
+const PatientView = ({diagnosis}: Props) => {
     const {id} = useParams()
     const [patient, setPatient] = useState<Patient | undefined>(undefined);
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null)
+    const [error, setError] = useState<string>()
+
+    const [modalOpen, setModalOpen] = useState<boolean>(false);
+    const openModal = (): void => setModalOpen(true);
+    const closeModal = (): void => {
+        setModalOpen(false);
+        setError(undefined);
+    };
 
     useEffect(() => {
         const fetchPatient = async () => {
@@ -52,7 +60,9 @@ const PatientView = ({ diagnosis }: Props) => {
                 const errorData = e?.response?.data;
                 if (errorData?.error && Array.isArray(errorData.error)) {
                     console.log(errorData.error)
-                    const message = errorData.error.map((error: { message: any; }, index: number) => `${index + 1}. ${error.message}`).join('\n')
+                    const message = errorData.error.map((error: {
+                        message: any;
+                    }, index: number) => `${index + 1}. ${error.message}`).join('\n')
                     setError(message);
                 } else if (typeof errorData === "string") {
                     setError(errorData);
@@ -86,8 +96,19 @@ const PatientView = ({ diagnosis }: Props) => {
             <h2>{patient.name} {genderIcon}</h2>
             <p>SSN: {patient.ssn}</p>
             <p>Occupation: {patient.occupation}</p>
-            {error && <Alert severity="error" style={{ whiteSpace: 'pre-line' }}>{error}</Alert>}
-            <EntryForm onSubmit={submitNewEntry} />
+            <AddEntryModal
+                modalOpen={modalOpen}
+                patientName={patient?.name}
+                error={error}
+                onSubmit={submitNewEntry}
+                diagnosis={diagnosis}
+                onClose={closeModal}
+            />
+            <Button variant="contained" onClick={() => openModal()}>
+                Add New Entry
+            </Button>
+            {error && <Alert severity="error" style={{whiteSpace: 'pre-line'}}>{error}</Alert>}
+            {/*<EntryForm onSubmit={submitNewEntry} />*/}
             {patient.entries.length > 0 && (<h3>Entries</h3>)}
             <div>
                 {patient.entries.map(entry => (
