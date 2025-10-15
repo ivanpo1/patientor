@@ -33,6 +33,6 @@ const OccupationalHealthcare = ( { entry, diagnosis }: EntryBaseProps ) => (
             )
         }
     </Box>
-)
+);
 
 export default OccupationalHealthcare;

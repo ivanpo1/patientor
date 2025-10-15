@@ -1,4 +1,4 @@
-import {Dialog, DialogTitle, DialogContent, Divider, Alert, Typography} from '@mui/material';
+import {Dialog, DialogTitle, DialogContent, Divider, Typography} from '@mui/material';
 
 import AddEntryForm from "./AddEntryForm";
 import {Diagnosis, EntryWithoutId} from "../../types";
@@ -6,13 +6,13 @@ import {Diagnosis, EntryWithoutId} from "../../types";
 interface Props {
     modalOpen: boolean;
     onClose: () => void;
-    onSubmit: (values: EntryWithoutId) => void;
+    onSubmit: (values: EntryWithoutId) => Promise<void>;
     error?: string;
     patientName?: string;
     diagnosis: Diagnosis[];
 }
 
-const AddEntryModal = ({ modalOpen, onClose, onSubmit, error, patientName, diagnosis }: Props) => (
+const AddEntryModal = ({ modalOpen, onClose, onSubmit, patientName, diagnosis }: Props) => (
     <Dialog fullWidth={true} open={modalOpen} onClose={() => onClose()}>
         <DialogTitle sx={{ bgcolor: 'black'}}>
             <Typography sx={{ p: 1, textAlign: 'center', fontSize: '1.5rem', color: 'white' }}>
@@ -21,7 +21,6 @@ const AddEntryModal = ({ modalOpen, onClose, onSubmit, error, patientName, diagn
         </DialogTitle>
         <Divider />
         <DialogContent>
-            {error && <Alert severity="error" style={{ whiteSpace: 'pre-line' }}>{error}</Alert>}
             <AddEntryForm onSubmit={onSubmit} onCancel={onClose} diagnosis={diagnosis}/>
         </DialogContent>
     </Dialog>

@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Box, Button, Grid, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
+import { Alert, Box, Button, Grid, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
 import { Diagnosis, EntryWithoutId, HealthCheckRating } from "../../types.ts";
 import SendIcon from '@mui/icons-material/Send';
+import axios from "axios";
+import * as React from "react";
 
 interface Props {
     onCancel: () => void;
-    onSubmit: ( values: EntryWithoutId ) => void;
+    onSubmit: ( values: EntryWithoutId ) => Promise<void>;
     diagnosis: Diagnosis[];
 }
 
@@ -16,63 +18,85 @@ const assertNever = ( value: never ): never => {
 };
 
 const EntryForm = ( { onSubmit, onCancel, diagnosis }: Props ) => {
-    const [ description, setDescription ] = useState<string>('')
-    const [ date, setDate ] = useState<string>('')
-    const [ specialist, setSpecialist ] = useState<string>('')
-    const [ diagnosisCodes, setDiagnosisCodes ] = useState([ diagnosis[0].code ])
+    const [ description, setDescription ] = useState<string>('');
+    const [ date, setDate ] = useState<string>('');
+    const [ specialist, setSpecialist ] = useState<string>('');
+    const [ diagnosisCodes, setDiagnosisCodes ] = useState([ diagnosis[0].code ]);
 
-    const [ type, setType ] = useState<EntryWithoutId['type']>('OccupationalHealthcare')
+    const [ type, setType ] = useState<EntryWithoutId['type']>('OccupationalHealthcare');
 
-    const [ healthCheckRating, setHealthCheckRating ] = useState(HealthCheckRating.Healthy)
-    const [ employerName, setEmployerName ] = useState('')
-    const [ sickLeave, setSickLeave ] = useState({ startDate: '', endDate: '' })
-    const [ discharge, setDischarge ] = useState({ date: '', criteria: '' })
+    const [ healthCheckRating, setHealthCheckRating ] = useState(HealthCheckRating.Healthy);
+    const [ employerName, setEmployerName ] = useState('');
+    const [ sickLeave, setSickLeave ] = useState({ startDate: '', endDate: '' });
+    const [ discharge, setDischarge ] = useState({ date: '', criteria: '' });
 
-    const addEntry = ( event: React.FormEvent ) => {
+    const [ submitError, setSubmitError ] = useState('');
+
+    const addEntry = async ( event: React.FormEvent ) => {
         event.preventDefault();
-        const baseData = { description, date, specialist, diagnosisCodes }
 
-        let entryData: EntryWithoutId;
+        try {
+            const baseData = { description, date, specialist, diagnosisCodes };
 
-        switch (type) {
-            case 'HealthCheck':
-                entryData = { ...baseData, type: 'HealthCheck', healthCheckRating }
-                break
-            case 'Hospital':
-                entryData = { ...baseData, type: 'Hospital', discharge }
-                break
-            case 'OccupationalHealthcare':
-                entryData = { ...baseData, type: 'OccupationalHealthcare', employerName, sickLeave }
-                break
-            default:
-                return assertNever(type)
+            let entryData: EntryWithoutId;
+
+            switch (type) {
+                case 'HealthCheck':
+                    entryData = { ...baseData, type: 'HealthCheck', healthCheckRating };
+                    break;
+                case 'Hospital':
+                    entryData = { ...baseData, type: 'Hospital', discharge };
+                    break;
+                case 'OccupationalHealthcare':
+                    entryData = { ...baseData, type: 'OccupationalHealthcare', employerName, sickLeave };
+                    break;
+                default:
+                    return assertNever(type);
+            }
+
+            await onSubmit(entryData);
+            resetForm();
+        } catch (e: unknown) {
+            if ( axios.isAxiosError(e) ) {
+                const errorData = e?.response?.data;
+                if ( errorData?.error && Array.isArray(errorData.error) ) {
+                    const message = errorData.error.map(( error: {
+                        message: string;
+                    }, index: number ) => `${ index + 1 }. ${ error.message }`).join('\n');
+                    setSubmitError(message);
+                } else if ( typeof errorData === "string" ) {
+                    setSubmitError(errorData);
+                } else {
+                    setSubmitError("An error occurred");
+                }
+            } else {
+                console.error("Unknown error", e);
+                setSubmitError("Unknown error");
+            }
         }
-
-        onSubmit(entryData)
-        resetForm()
-    }
+    };
 
     const resetForm = () => {
-        setDescription('')
-        setDate('')
-        setSpecialist('')
-        setDiagnosisCodes([ diagnosis[0].code ])
-        setHealthCheckRating(HealthCheckRating.Healthy)
-        setEmployerName('')
-        setSickLeave({ startDate: '', endDate: '' })
-        setDischarge({ date: '', criteria: '' })
-    }
+        setDescription('');
+        setDate('');
+        setSpecialist('');
+        setDiagnosisCodes([ diagnosis[0].code ]);
+        setHealthCheckRating(HealthCheckRating.Healthy);
+        setEmployerName('');
+        setSickLeave({ startDate: '', endDate: '' });
+        setDischarge({ date: '', criteria: '' });
+    };
 
     const onHealthCheckRatingChange = ( event: SelectChangeEvent<string> ) => {
         event.preventDefault();
-        setHealthCheckRating(Number(event.target.value))
-    }
+        setHealthCheckRating(Number(event.target.value));
+    };
 
     const onDiagnosisCodeChange = ( event: SelectChangeEvent<string> ) => {
         event.preventDefault();
-        console.log([ event.target.value ])
-        setDiagnosisCodes([ event.target.value ])
-    }
+        console.log([ event.target.value ]);
+        setDiagnosisCodes([ event.target.value ]);
+    };
 
     const healthCheckOptions = Object.entries(HealthCheckRating)
         .filter(( [ key, _value ] ) => isNaN(Number(key)))
@@ -85,6 +109,7 @@ const EntryForm = ( { onSubmit, onCancel, diagnosis }: Props ) => {
     return (
         <div>
             <Box component="section" sx={ { p: 2, border: '1px dashed grey' } }>
+                { submitError && <Alert severity="error" style={ { whiteSpace: 'pre-line' } }>{ submitError }</Alert> }
                 <form onSubmit={ addEntry }>
 
                     <Box component="section" sx={ { p: 2, border: '2px dashed grey' } }
@@ -271,7 +296,7 @@ const EntryForm = ( { onSubmit, onCancel, diagnosis }: Props ) => {
                 </form>
             </Box>
         </div>
-    )
-}
+    );
+};
 
 export default EntryForm;

@@ -1,39 +1,42 @@
 import axios from "axios";
-import {EntryWithoutId, Patient, PatientFormValues} from "../types";
+import { EntryWithoutId, Patient, PatientFormValues } from "../types";
 
 import { apiBaseUrl } from "../constants";
 
 const getAll = async () => {
-  const { data } = await axios.get<Patient[]>(
-    `${apiBaseUrl}/patients`
-  );
+    const { data } = await axios.get<Patient[]>(
+        `${ apiBaseUrl }/patients`
+    );
 
-  return data;
+    return data;
 };
 
-const getPatientById = async (id: string | undefined): Promise<Patient | undefined> => {
+const getPatientById = async ( id: string | undefined ): Promise<Patient | undefined> => {
     const { data } = await axios.get<Patient>(
-        `${apiBaseUrl}/patients/${id}`
+        `${ apiBaseUrl }/patients/${ id }`
     );
-    return data
-}
+    return data;
+};
 
-const createPatientEntry = async (id: string | undefined, object: EntryWithoutId) => {
-    const { data } = await axios.post<Patient>(`${apiBaseUrl}/patients/${id}/entries`, object)
+const createPatientEntry = async ( id: string | undefined, object: EntryWithoutId ) : Promise<Patient> => {
+    if (!id) {
+        throw new Error('Patient ID is required');
+    }
 
-    return data
-}
+    const { data } = await axios.post<Patient>(`${ apiBaseUrl }/patients/${ id }/entries`, object);
+    return data;
+};
 
-const create = async (object: PatientFormValues) => {
-  const { data } = await axios.post<Patient>(
-    `${apiBaseUrl}/patients`,
-    object
-  );
+const create = async ( object: PatientFormValues ) => {
+    const { data } = await axios.post<Patient>(
+        `${ apiBaseUrl }/patients`,
+        object
+    );
 
-  return data;
+    return data;
 };
 
 export default {
-  getAll, create, getPatientById, createPatientEntry
+    getAll, create, getPatientById, createPatientEntry
 };
 

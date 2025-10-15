@@ -32,6 +32,6 @@ const Hospital = ( { entry, diagnosis }: EntryBaseProps ) => (
                   } }/>
         </Box>
     </Box>
-)
+);
 
-export default Hospital
+export default Hospital;

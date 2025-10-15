@@ -13,7 +13,7 @@ import PatientView from "./components/PatientViewPage";
 
 const App = () => {
     const [patients, setPatients] = useState<Patient[]>([]);
-    const [diagnosis, setDiagnosis] = useState<Diagnosis[]>([])
+    const [diagnosis, setDiagnosis] = useState<Diagnosis[]>([]);
 
     useEffect(() => {
         void axios.get<void>(`${apiBaseUrl}/ping`);
