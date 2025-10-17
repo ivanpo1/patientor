@@ -60,9 +60,9 @@ const PatientView = ( { diagnosis }: Props ) => {
         return <div>Loading data...</div>;
     }
 
-    // if (error) {
-    //     return <Alert severity="error">{error}</Alert>
-    // }
+    if (error) {
+        return <Alert severity="error">{error}</Alert>;
+    }
 
     if ( !patient ) {
         return <div>Patient not found</div>;

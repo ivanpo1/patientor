@@ -48,7 +48,14 @@ const EntryForm = ( { onSubmit, onCancel, diagnosis }: Props ) => {
                     entryData = { ...baseData, type: 'Hospital', discharge };
                     break;
                 case 'OccupationalHealthcare':
-                    entryData = { ...baseData, type: 'OccupationalHealthcare', employerName, sickLeave };
+                    const sickLeaveValid =
+                        sickLeave?.startDate?.trim() && sickLeave?.endDate?.trim();
+
+                    entryData = {
+                        ...baseData,
+                        type: 'OccupationalHealthcare',
+                        employerName, ...(sickLeaveValid ? { sickLeave } : {})
+                    };
                     break;
                 default:
                     return assertNever(type);
@@ -87,12 +94,12 @@ const EntryForm = ( { onSubmit, onCancel, diagnosis }: Props ) => {
         setDischarge({ date: '', criteria: '' });
     };
 
-    const onHealthCheckRatingChange = ( event: SelectChangeEvent<string> ) => {
+    const onHealthCheckRatingChange = ( event: SelectChangeEvent ) => {
         event.preventDefault();
         setHealthCheckRating(Number(event.target.value));
     };
 
-    const onDiagnosisCodeChange = ( event: SelectChangeEvent<string> ) => {
+    const onDiagnosisCodeChange = ( event: SelectChangeEvent ) => {
         event.preventDefault();
         console.log([ event.target.value ]);
         setDiagnosisCodes([ event.target.value ]);
